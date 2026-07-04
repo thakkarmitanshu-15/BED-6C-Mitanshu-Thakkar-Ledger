@@ -1,0 +1,40 @@
+{
+  "name": "bed-6c-mitanshuthakkar-ledger",
+  "version": "1.0.0",
+  "description": "Double Entry Ledger System",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "nodemon --watch src --exec ts-node src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "echo \"No tests yet\"",
+    "lint": "echo \"No linter configured\""
+  },
+  "keywords": [
+    "ledger",
+    "double-entry",
+    "accounting",
+    "postgresql",
+    "typescript"
+  ],
+  "author": "Mitanshu Thakkar",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^5.2.1",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.13.2",
+    "@types/pg": "^8.20.0",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "type": "commonjs"
+}
