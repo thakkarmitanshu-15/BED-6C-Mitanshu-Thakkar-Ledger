@@ -1,5 +1,6 @@
 import { PoolClient } from "pg";
 import { randomUUID } from "crypto";
+import { updateBalanceSnapshot } from "./balanceService";
 
 export interface LedgerLine {
   accountId: number;
@@ -29,6 +30,8 @@ export async function createJournalEntry(
   await client.query("BEGIN");
 
   try {
+    const updatedAccounts = new Set<number>();
+
     for (const line of lines) {
       await client.query(
         `
@@ -57,6 +60,9 @@ export async function createJournalEntry(
       );
     }
 
+    for (const accountId of updatedAccounts) {
+        await updateBalanceSnapshot(client, accountId);
+    }
     await client.query("COMMIT");
   } catch (error) {
     await client.query("ROLLBACK");

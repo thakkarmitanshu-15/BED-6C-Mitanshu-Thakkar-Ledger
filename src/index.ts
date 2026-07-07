@@ -1,12 +1,15 @@
 import express from "express";
 import dotenv from "dotenv";
 import { pool } from "./config/db";
+import trialBalanceRoutes from "./routes/trialBalance";
+
 
 dotenv.config();
 
 const app = express();
 
 app.use(express.json());
+app.use("/api/v1",trialBalanceRoutes);
 
 app.get("/", async (_req, res) => {
   try {
