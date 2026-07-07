@@ -27,12 +27,15 @@ export async function createJournalEntry(
 
   const journalId = randomUUID();
 
-  await client.query("BEGIN");
+
 
   try {
     const updatedAccounts = new Set<number>();
 
     for (const line of lines) {
+
+      updatedAccounts.add(line.accountId);
+
       await client.query(
         `
         INSERT INTO ledger_entries (
@@ -60,12 +63,9 @@ export async function createJournalEntry(
       );
     }
 
-    for (const accountId of updatedAccounts) {
-        await updateBalanceSnapshot(client, accountId);
-    }
-    await client.query("COMMIT");
+    // Balance snapshots are managed by the business service.
+    // Do not recalculate them here during withdrawal processing.
   } catch (error) {
-    await client.query("ROLLBACK");
     throw error;
   }
 }
