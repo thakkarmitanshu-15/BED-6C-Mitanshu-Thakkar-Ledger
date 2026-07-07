@@ -1,0 +1,49 @@
+openapi: 3.0.3
+
+info:
+  title: Double Entry Ledger API
+  version: 1.0.0
+  description: API documentation for the Double Entry Ledger System.
+
+servers:
+  - url: http://localhost:3000/api/v1
+
+paths:
+
+  /transactions:
+    post:
+      summary: Create a financial transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                transactionType:
+                  type: string
+                amount:
+                  type: number
+                currency:
+                  type: string
+                accountId:
+                  type: integer
+                idempotencyKey:
+                  type: string
+      responses:
+        "201":
+          description: Transaction created successfully
+
+  /trial-balance:
+    get:
+      summary: Get Trial Balance
+      parameters:
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Trial Balance Report
