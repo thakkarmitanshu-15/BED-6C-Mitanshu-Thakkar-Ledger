@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { pool } from "./config/db";
 import trialBalanceRoutes from "./routes/trialBalance";
 import { auditLogger } from "./middleware/auditLogger";
+import auditRoutes from "./routes/auditRoutes";
 
 
 dotenv.config();
@@ -14,6 +15,8 @@ app.use(express.json());
 app.use(auditLogger);
 
 app.use("/api/v1",trialBalanceRoutes);
+
+app.use("/api/v1/audit", auditRoutes);
 
 
 app.get("/", async (_req, res) => {
