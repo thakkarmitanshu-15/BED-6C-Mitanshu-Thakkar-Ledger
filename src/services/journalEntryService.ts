@@ -11,6 +11,7 @@ export interface LedgerLine {
 
 export async function createJournalEntry(
   client: PoolClient,
+  transactionId: string,
   lines: LedgerLine[]
 ) {
   const debitTotal = lines
@@ -36,31 +37,33 @@ export async function createJournalEntry(
 
       updatedAccounts.add(line.accountId);
 
-      await client.query(
-        `
-        INSERT INTO ledger_entries (
-          journal_id,
-          account_id,
-          entry_type,
-          amount,
-          currency,
-          idempotency_key,
-          current_hash,
-          created_by
-        )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-        `,
-        [
-          journalId,
-          line.accountId,
-          line.entryType,
-          line.amount,
-          line.currency,
-          randomUUID(),
-          "initial_hash",
-          "system"
-        ]
-      );
+    await client.query(
+  `
+  INSERT INTO ledger_entries (
+    journal_id,
+    transaction_id,
+    account_id,
+    entry_type,
+    amount,
+    currency,
+    idempotency_key,
+    current_hash,
+    created_by
+  )
+  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+  `,
+  [
+    journalId,
+    transactionId,
+    line.accountId,
+    line.entryType,
+    line.amount,
+    line.currency,
+    randomUUID(),
+    "initial_hash",
+    "system"
+  ]
+);
     }
 
     // Balance snapshots are managed by the business service.

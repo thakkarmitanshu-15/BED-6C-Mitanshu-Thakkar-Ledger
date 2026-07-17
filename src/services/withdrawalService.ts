@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 
 import { withdrawal } from "./transactionHandlers/withdrawal";
 import { createJournalEntry } from "./journalEntryService";
+import { randomUUID } from "crypto";
 
 dotenv.config();
 
@@ -62,8 +63,26 @@ export async function processWithdrawal(
       depositLiability,
       amount
     );
+    const transactionId = randomUUID();
 
-    await createJournalEntry(client, entries);
+    await client.query(
+  `
+  INSERT INTO transactions (
+      id,
+      transaction_type,
+      amount,
+      currency
+  )
+  VALUES ($1, $2, $3, $4)
+  `,
+  [
+    transactionId,
+    2,          // Withdrawal transaction type
+    amount,
+    "INR"
+  ]
+);
+    await createJournalEntry(client,transactionId, entries);
 
     await client.query("COMMIT");
 
