@@ -4,6 +4,7 @@ import { pool } from "./config/db";
 import trialBalanceRoutes from "./routes/trialBalance";
 import { auditLogger } from "./middleware/auditLogger";
 import auditRoutes from "./routes/auditRoutes";
+import reportRoutes from "./routes/reportRoutes";
 
 
 dotenv.config();
@@ -17,6 +18,8 @@ app.use(auditLogger);
 app.use("/api/v1",trialBalanceRoutes);
 
 app.use("/api/v1/audit", auditRoutes);
+
+app.use("/api/v1/reports", reportRoutes);
 
 
 app.get("/", async (_req, res) => {
