@@ -5,6 +5,7 @@ import trialBalanceRoutes from "./routes/trialBalance";
 import { auditLogger } from "./middleware/auditLogger";
 import auditRoutes from "./routes/auditRoutes";
 import reportRoutes from "./routes/reportRoutes";
+import maintenanceRoutes from "./routes/maintenanceRoutes";
 
 
 dotenv.config();
@@ -20,6 +21,8 @@ app.use("/api/v1",trialBalanceRoutes);
 app.use("/api/v1/audit", auditRoutes);
 
 app.use("/api/v1/reports", reportRoutes);
+
+app.use("/api/v1/maintenance", maintenanceRoutes);
 
 
 app.get("/", async (_req, res) => {

@@ -1,0 +1,50 @@
+import { Pool } from "pg";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const pool = new Pool({
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+});
+
+export async function applyRetentionPolicy(days = 365) {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    await client.query(
+      `
+      INSERT INTO ledger_entries_archive
+      SELECT *
+      FROM ledger_entries
+      WHERE created_at < NOW() - ($1 || ' days')::INTERVAL
+      `,
+      [days]
+    );
+
+    await client.query(
+      `
+      DELETE FROM ledger_entries
+      WHERE created_at < NOW() - ($1 || ' days')::INTERVAL
+      `,
+      [days]
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      success: true,
+      retentionDays: days,
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
