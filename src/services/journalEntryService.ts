@@ -2,11 +2,14 @@ import { PoolClient } from "pg";
 import { randomUUID } from "crypto";
 import { updateBalanceSnapshot } from "./balanceService";
 
+
 export interface LedgerLine {
   accountId: number;
   entryType: "DEBIT" | "CREDIT";
   amount: number;
   currency: string;
+  description?: string;
+
 }
 
 export async function createJournalEntry(

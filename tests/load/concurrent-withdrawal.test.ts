@@ -1,7 +1,30 @@
-import { processWithdrawal } from "../../src/services/withdrawalService";
+import * as withdrawalService from "../../src/services/withdrawalService";
 import dotenv from "dotenv";
 
 dotenv.config();
+
+beforeEach(async () => {
+  const { Pool } = require("pg");
+
+  const pool = new Pool({
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT),
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+  });
+
+  await pool.query(`
+    UPDATE balance_snapshots
+    SET balance = CASE
+      WHEN account_id = 1 THEN 10000
+      WHEN account_id = 7 THEN 0
+    END
+    WHERE account_id IN (1,7);
+  `);
+
+  await pool.end();
+});
 
 describe("Concurrent Withdrawal Load Test", () => {
   it("should allow only 20 successful withdrawals", async () => {
@@ -9,29 +32,22 @@ describe("Concurrent Withdrawal Load Test", () => {
 
     for (let i = 0; i < 50; i++) {
       requests.push(
-        processWithdrawal(
-          1,      // Wallet Account
-          7,      // Deposit Liability Account
-          500     // Amount
+        withdrawalService.processWithdrawal(
+          1,
+          7,
+          500
         )
       );
     }
 
     const results = await Promise.allSettled(requests);
 
-results.forEach((result, index) => {
-  if (result.status === "rejected") {
-    console.log(`Request ${index + 1}:`);
-    console.log(result.reason);
-  }
-});
-
 const success = results.filter(
-  r => r.status === "fulfilled"
+  (r) => r.status === "fulfilled"
 ).length;
 
 const failed = results.filter(
-  r => r.status === "rejected"
+  (r) => r.status === "rejected"
 ).length;
 
 console.log({ success, failed });

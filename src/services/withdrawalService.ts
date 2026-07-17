@@ -1,6 +1,5 @@
 import { Pool } from "pg";
 import dotenv from "dotenv";
-
 import { withdrawal } from "./transactionHandlers/withdrawal";
 import { createJournalEntry } from "./journalEntryService";
 import { randomUUID } from "crypto";
@@ -25,7 +24,6 @@ export async function processWithdrawal(
   try {
     await client.query("BEGIN");
 
-    // Lock account row
     const balanceResult = await client.query(
       `
       SELECT balance
@@ -37,7 +35,7 @@ export async function processWithdrawal(
     );
 
     if (balanceResult.rows.length === 0) {
-      throw new Error("Balance snapshot not found.");
+      throw new Error("Account balance not found.");
     }
 
     const balance = Number(balanceResult.rows[0].balance);
@@ -46,7 +44,6 @@ export async function processWithdrawal(
       throw new Error("Insufficient balance.");
     }
 
-    // Deduct balance while lock is held
     await client.query(
       `
       UPDATE balance_snapshots
@@ -57,45 +54,41 @@ export async function processWithdrawal(
       [amount, walletAccount]
     );
 
-    // Create ledger entries
+    const transactionId = randomUUID();
+
+    await client.query(
+      `
+      INSERT INTO transactions (
+        id,
+        transaction_type,
+        amount,
+        currency
+      )
+      VALUES ($1, $2, $3, $4)
+      `,
+      [
+        transactionId,
+        2,
+        amount,
+        "INR",
+      ]
+    );
+
     const entries = withdrawal(
       walletAccount,
       depositLiability,
       amount
     );
-    const transactionId = randomUUID();
 
-    await client.query(
-  `
-  INSERT INTO transactions (
-      id,
-      transaction_type,
-      amount,
-      currency
-  )
-  VALUES ($1, $2, $3, $4)
-  `,
-  [
-    transactionId,
-    2,          // Withdrawal transaction type
-    amount,
-    "INR"
-  ]
-);
-    await createJournalEntry(client,transactionId, entries);
+    await createJournalEntry(client, transactionId, entries);
 
     await client.query("COMMIT");
 
     return true;
-
   } catch (error) {
-
     await client.query("ROLLBACK");
     throw error;
-
   } finally {
-
     client.release();
-
   }
 }
