@@ -1,0 +1,1 @@
+console.log("Rollback script placeholder.");
